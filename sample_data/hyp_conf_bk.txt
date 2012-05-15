@@ -1,0 +1,40 @@
+
+>FORMULAS
+2000.01=2000.01.01+2000.01.03
+2000=2000.01+2000.02+2000.03
+2007=2000-2006.01-2006.02
+<FORMULAS
+
+>ACCOUNTS_ORD
+2000,Gross Sales
+-2000.01,Products
+-2000.01.01,Direct
+-2000.01.03,Manual Adj.
+-2000.02,Contracts
+-2000.03,Service
+-2006.01,Sales Discounts
+-2006.02,Sales Discounts
+-2007,Net Trade Sales
+2010,Standard Cost of Trade Sales
+2015,Variances and Other Costs
+-2015.01.01,Purchase Price Variances
+-2015.01.05,2015.01 - Foreign Currency IntraCo PPV
+-2015.01.06,External FX PPV
+-2015.03.01,Manufacturing Variances
+-2015.07,2015,Inventory Transfered to Fixed Asse
+-2015.10,2015,Manufacturing Fees
+-2015.11.02,SFAS 133 Hedge Amortization
+-2015.12,Gain (Loss) Disposals of Fixed Assets
+2015.06,Other COS - Variances
+-2015.06.01,Other Cost of Goods Sold
+-2015.06.03,Dollar Depreciation
+-2015.06.05,Purchase Discounts
+-2015.06.06,Inventory Adj - Std Cost Revisi
+-2015.06.07,Inventory Adj - Prov for Obsole
+-2015.06.08,Inventory Adj - Physical Writeo
+-2015.06.09,Inventory Adj - Scap
+-2015.06.10,Inventory Adj - Other
+-2015.06.11,Inventory Adj. - Capitalized V
+<ACCOUNTS_ORD
+
+

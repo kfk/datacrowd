@@ -1,0 +1,51 @@
+{%extends 'frame.html' %}
+{%block content%}
+<div class="row">
+	<div class="span12">
+		<h3>Product analysis of profitability and strategic products</h3>
+		<div id="plot" style="width:700px;height:400px;margin-left: auto;margin-right: auto;"></div>
+		<p style="font-weight:bold;">
+			Y label: Product importance indicator, X label: Standard Margin</p>
+		<p>This is product: <span id="clickedData"></span></p>
+		<table id="simpleTable" class='table table-bordered table-striped table-condensed'></table>
+	</div>
+
+<script>
+$(function(){
+	function plotJson(data){
+		var options = {
+    			series: {
+      			lines: { show: false },
+    			points: { show: true },
+			xaxis: {label:'test'}},
+			grid: {hoverable:true, clickable:true}
+		};
+		var plot = $.plot($('#plot'),[data['data']],options);
+		
+		$('#plot').bind('plotclick', function (event, pos, item){	
+			atHoverOrClick(item.datapoint)
+		});
+		$('#plot').bind('plothover', function (event, pos, item){	
+			if (item){atHoverOrClick(item.datapoint)};
+		});
+
+		function atHoverOrClick(xy){
+			xy = '['+String(xy)+']';
+			var product = data['metadata'][xy];
+			$('#clickedData').text(product);
+			var customers = data['customers'][product];
+			var header = ['customer']	
+			genFsimpleTable(header,customers);
+		};
+	};
+	
+	$.ajax({
+		url:'/productsAoP/json',
+		method:'GET',
+		//datatype:'json',
+		success: function(data){plotJson(data)}
+	});
+
+});
+</script>
+{%endblock%}

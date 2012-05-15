@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<!--TITLE--><title>Demo Data Analytics</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<!-- CSS -->
+	<link href="/static/style.css" rel="stylesheet">
+	<link href="/static/vendor.css" rel="stylesheet">
+	<style type="text/css">
+		body {
+			padding-top: 60px;
+			padding-bottom: 40px;
+		}
+		.centered{
+			text-align:center;
+			margin-left: auto;
+			margin-right: auto;"}
+	</style><!--CSS-->
+	<!-- Favicon -->
+	<link rel="shortcut icon" href="/static/icons/favicon.png">  
+	
+	<!-- Javascript
+	================================================== -->
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/static/excanvas.min.js"></script><![endif]-->
+	<script type="text/javascript" charset="utf-8" language="javascript" src="/static/jquery.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/static/jquery.flot.js" language="javascript"></script>
+	<script type="text/javascript" charset="utf-8" src="/static/bootstrap-tab.js" language="javascript"></script>
+	<script type="text/javascript" charset="utf-8" language="javascript" src="/static/jquery.dataTables.js"></script>
+</head>
+
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="/">Demo Data Analytics</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href='/'>Home</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="row">
+			<div class="span12">
+				<div class="centered">
+
+					<hr>
+					<form id="form_stock_id"> 
+					Please, insert a stock id (i.e.: GE, TE, GOOG, etc.): <input type="text" id="inp_stock_id"/>
+					<input type="submit"/>
+					</form>
+					<hr>
+
+					<div id="hideble">
+						<h3>Single Stock Company Overview</h3>
+						<hr>
+						<div class="tabbable" style="margin-bottom: 9px;">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#1" data-toggle="tab">Overview</a></li>
+								<li><a href="#2" data-toggle="tab">Chart Data</a></li>
+								<li><a href="#3" data-toggle="tab">Tests</a></li>
+							</ul>
+							<div class="tab-content">
+								<div class="tab-pane active" id="1">
+									<p><b>Last Week overview</b></p>
+							
+									<div id="dynamic_table_plc_00"></div>
+							
+									<p><b>Historical trend</b></p>
+									
+									
+									<form id="form_forplot"> 
+										Rolling average input(insert rolling choise saparated by "-", i.e.: 3-6): <input type="text" class="span1" id="forplot_mva_inp"/>
+										From Year:  <input type="text" class="span1" id="forplot_from_y_inp"/></br>
+										Interval: <select id="forplot_interval_inp">
+											<option value="m">Monthly</option>
+											<option value="w">Weekly</option>
+											<option value="d">Daily</option>
+										</select>
+										<input type="submit"/>
+									</form>
+									
+									<div id="flot_plot_plc" style="width:700px;height:400px;margin-left: auto;margin-right: auto;"></div>
+								</div>
+								<div class="tab-pane" id="2">
+									<h3>Historical data (from 2007)</h3>
+									
+									<div id="dynamic_table_plc_01"></div>
+								</div>
+								<div class="tab-pane" id="3">
+									<a id='test_href' href='#'>Click</a>
+								</div>
+							</div>
+						</div> <!-- /tabbable -->
+					</div> <!-- /Hideble -->			
+				</div>
+			</div>
+		</div>
+	</div> <!-- /container -->
+
+    
+	<script type="text/javascript">
+		$(function () {
+		
+			$('#hideble').hide(); 
+		
+			//Plotting
+			function plotJson(series, from_y){
+				var data = []
+				for (k in series['sort_order']){
+					data.push(series[series['sort_order'][k]])};
+					$.plot($("#flot_plot_plc"), data,{
+						xaxis: {
+							mode: "time",
+							timeformat: "%y/%m/%d",
+							minTickSize: [1, "day"],
+							min: (new Date(from_y, 1, 1)).getTime(),
+							max: (new Date(2012, 3, 28)).getTime()
+							}
+					})
+			};
+		
+			function getStockJson (stock_id,interval,from_y,mvs) {
+				$.ajax({
+					url:"/js_plot/"+stock_id+"?interval="+interval+"&from_y="+from_y+"&mvs="+mvs,
+					method: "GET",
+					datatype: "json",
+					success: function (series){plotJson(series,from_y)}
+					});
+			};
+			//.Plotting
+		
+			//Forms
+			$('#form_stock_id').submit(function(inp) {
+				$('#hideble').show()
+				var stock_id = $('#inp_stock_id').val()
+				getStockJson(stock_id,interval="w",from_y="2007",mvs="3-6");
+				getLastQuote(stock_id, url='/get_last_quote/', table_plc='dynamic_table_plc_00', table_id='dynamic_table_00');
+				getLastQuote(stock_id, url='/get_hist_quotes/', table_plc='dynamic_table_plc_01', table_id='dynamic_table_01');
+				return false;
+			});
+
+			$('#form_forplot').submit(function() {
+				var mvs = $('#forplot_mva_inp').val();
+				var interval = $('#forplot_interval_inp').val();
+				var stock_id = $('#inp_stock_id').val()
+				var from_year = $('#forplot_from_y_inp').val()
+				getStockJson(stock_id,interval,from_year,mvs)
+				return false;
+			});
+			//.Forms
+
+			//Tables
+			function getLastQuote (stock_id,url,table_plc,table_id) {
+				$('#'+table_plc).html('<table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered table-condensed" id="'+table_id+'"></table>');
+				$.ajax({
+				    "url": url+stock_id,
+				    "success": function ( json ) {
+					aoColumns = []
+					for (col in json["aoColumns"]){ 
+						var td = {};
+						td["sTitle"] = json["aoColumns"][col];
+						aoColumns.push(td);
+						};
+        
+					json.bDestroy = true;
+					$('#'+table_id).dataTable({
+						"bDestroy":true,
+						"sDom":'<"clear">',
+						"aaSorting":[[0,"desc"]],
+						"aaData":json["aaData"],
+						"aoColumns": aoColumns
+					});
+				    },
+				    "dataType": "json"
+				});
+			};
+			
+			//Learning, Testing, the usual...
+			$('#test_href').click(function getWebPage(){
+				alert($('#content').contents());
+			});
+		
+		});
+	</script>
+	
+
+</body>
+</html>

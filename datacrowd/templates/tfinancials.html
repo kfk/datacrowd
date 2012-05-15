@@ -1,0 +1,81 @@
+{% extends "frame.html"  %}
+
+{% block content %}
+<div id="box-filter-title">Selections</div>
+<div id="box-filter">
+Entity:
+<select id='entities_select'></br>	
+	<option></option>
+</select>
+</div></br>
+<div id='financials_table'></div>	
+<script type="text/javascript">
+	$(function () {
+	//Globals here. Some of the may be sent from server?
+	var url='financials_json'
+	var table_nm='financials_table'
+	var entityFirstLoad='entity01'	
+	//Globals End Here
+
+	//Select Populator. Uses Pure.js and needs json data (entities)
+	function entitySelect(entities){
+	json={options:entities};
+		$('#entities_select')
+			.directives({'option':{'opt<-options':{'.':'opt'}}})
+			.render(json)
+			.change(function(){
+					var entity=$(this).val();
+					ajaxTable(url,table_nm,entity)});
+	};	
+
+		//Functions Called From Ajax Call
+		function onRowClick (){
+				var firstGroup = $('tr.lev3').is(':visible');
+				if (firstGroup!=true){$(this).nextUntil(".lev1",'.lev2').toggle()};
+				if (firstGroup==true){$(this).nextUntil(".lev1").hide()};
+		};
+
+$("tr.lev2").click(function() {
+$(this).nextUntil('.lev1').toggle();
+		});
+		//Ajax Call, populates Json Data
+		function ajaxTable (url,table_nm,entitySelected) {
+			var table_id='ID_'+table_nm;
+			$('#'+table_nm).html('<table cellpadding="0" cellspacing="0" border="0" class="table table-condensed" id="'+table_id+'"></table>');
+			$.ajax({
+			    "url": url,
+					"success": function ( json ) {
+				if ($('#entities_select').val()==''){entitySelect(json['entities'])};	
+				
+				aoColumns = []
+				for (col in json["aoColumns"]){ 
+					var td = {};
+					td["sTitle"] = json["aoColumns"][col];
+					aoColumns.push(td);
+					};
+					
+				var filteredData = []
+				for (i in json['aaData']){
+					if (json['aaData'][i][0]==entitySelected){
+						filteredData.push(json['aaData'][i]);
+					}};	        				
+				json.bDestroy = true;
+				$('#'+table_id).dataTable({
+					"bDestroy":true,
+					"sDom":'<"clear">',
+					'iDisplayLength':1000,
+					'fnInitComplete':function(){$('tr.lev1').click(onRowClick);
+																			$("tr.lev2").click(function() {$(this).nextUntil('.lev2','.lev3').toggle();});},
+					"aaData":filteredData,
+					"aoColumns": aoColumns
+				});
+			    },
+			    "dataType": "json"
+			});
+		};
+	//Call function to start all
+	ajaxTable(url,table_nm,entityFirstLoad)
+	//Test Learning 
+	});
+</script>
+{%endblock%}
